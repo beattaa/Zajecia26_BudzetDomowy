@@ -1,97 +1,135 @@
 package budzetDomowy;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-public class TransactionDAO implements DAO {
-    private static final String URL = "jdbc:mysql://localhost:3306/zad_domowe?characterEncoding=utf8&serverTimezone=UTC&useSSL=false";
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "xxx";
-    private Connection connection;
 
-    public TransactionDAO() {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-        } catch (ClassNotFoundException exception) {
-            System.err.println("Błąd przy wczytywaniu sterownika");
-            return;
-        } catch (
-                SQLException e) {
-            System.err.println("Błąd przy nawiązywaniu połączenia");
-            return;
-        }
-    }
+public class TransactionDAO
+{
+   private static final String URL = "jdbc:mysql://localhost:3306/zad_domowe?characterEncoding=utf8&serverTimezone=UTC&useSSL=false";
+   private static final String USERNAME = "root";
+   private static final String PASSWORD = "Czerwiec123!";
+   private Connection connection;
 
-    @Override
-    public void select(int type) {
-        String query = "SELECT * FROM TRANSACTIONS WHERE TYPE=" + type;
-        try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-            while (resultSet.next()) {
-                int id = resultSet.getInt("ID");
-                String description = resultSet.getString("DESCRIPTION");
-                double amount = resultSet.getDouble("AMOUNT");
-                System.out.println(id + " " + description + ": " + amount);
+   private static final String INSERT_QUERY = "INSERT INTO TRANSACTIONS (TYPE, DESCRIPTION, AMOUNT, DATE) VALUES (?, ?, ?, ?)";
+   private static final String SELECT_QUERY = "SELECT * FROM TRANSACTIONS WHERE TYPE = ?";
+   private static final String UPDATE_QUERY = "UPDATE TRANSACTIONS SET DESCRIPTION = ?, AMOUNT = ?, DATE = ? WHERE id = ?";
+   private static final String DELETE_QUERY = "DELETE FROM TRANSACTIONS WHERE id = ?";
 
-            }
-        } catch (SQLException e) {
-            System.err.println("Błąd przy zapytaniu do bazy danych");
-            e.printStackTrace();
-        }
-    }
 
-    @Override
-    public void update(String value, int id) {
-        try {
-            String query = "UPDATE TRANSACTIONS SET DESCRIPTION=? WHERE ID=?";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1, value);
-            preparedStatement.setInt(2, id);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Błąd przy zapytaniu do bazy danych");
-            e.printStackTrace();
-        }
-    }
+   public TransactionDAO()
+   {
+      try
+      {
+         Class.forName("com.mysql.cj.jdbc.Driver");
+         connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+      }
+      catch (ClassNotFoundException exception)
+      {
+         System.err.println("Błąd przy wczytywaniu sterownika");
+         return;
+      }
+      catch (SQLException exception)
+      {
+         System.err.println("Błąd podczas nawiązywania połączenia z bazą danych");
+         exception.printStackTrace();
+         return;
+      }
+   }
 
-    @Override
-    public void delete(int id) {
-        try {
-            String query = "DELETE FROM TRANSACTIONS WHERE ID=?";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Błąd przy zapytaniu do bazy danych");
-            e.printStackTrace();
-        }
-    }
+   //R - read
+   public List<Transaction> read(int type)
+   {
+      List<Transaction> transactionList = new ArrayList<>();
+      try
+      {
+         PreparedStatement updateSql = connection.prepareStatement(SELECT_QUERY);
+         updateSql.setInt(1, type);
+         ResultSet resultSet = updateSql.executeQuery();
 
-    @Override
-    public void create(int type, String desc, double amount, Date date) {
-        try {
-            String query = "INSERT INTO TRANSACTIONS " +
-                    "(TYPE, DESCRIPTION, AMOUNT, DATE) " +
-                    "VALUES (?,?,?,?)";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setInt(1, type);
-            preparedStatement.setString(2, desc);
-            preparedStatement.setDouble(3, amount);
-            preparedStatement.setDate(4, date);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Błąd przy zapytaniu do bazy danych");
-            e.printStackTrace();
-        }
-    }
+         while (resultSet.next())
+         {
+            long idFromDatabase = resultSet.getLong("ID");
+            int typeFromDatabase = resultSet.getInt("TYPE");
+            String descriptionFromDatabase = resultSet.getString("DESCRIPTION");
+            double amount = resultSet.getDouble("AMOUNT");
+            LocalDate date = resultSet.getDate("DATE").toLocalDate();
+            Transaction transaction = new Transaction(idFromDatabase, typeFromDatabase, descriptionFromDatabase, amount, date);
+            transactionList.add(transaction);
+         }
+      }
+      catch (SQLException exception)
+      {
+         exception.printStackTrace();
+      }
+      return transactionList;
+   }
 
-    public void close() {
-        try {
-            connection.close();
-        } catch (SQLException exception) {
-            System.err.println("Błąd przy zamykaniu połączenia");
-            exception.printStackTrace();
-        }
-    }
+   //U - update
+   public void update(Transaction transaction)
+   {
+      try
+      {
+         PreparedStatement updateSql = connection.prepareStatement(UPDATE_QUERY);
+         updateSql.setString(1, transaction.getDescription());
+         updateSql.setDouble(2, transaction.getAmount());
+         updateSql.setDate(3, java.sql.Date.valueOf(transaction.getDate()));
+         updateSql.setDouble(4, transaction.getId());
+         updateSql.executeUpdate();
+      }
+      catch (SQLException exception)
+      {
+         exception.printStackTrace();
+      }
+   }
+
+   //D - delete
+   public void delete(long id)
+   {
+      try
+      {
+         PreparedStatement deleteSql = connection.prepareStatement(DELETE_QUERY);
+         deleteSql.setLong(1, id);
+         deleteSql.executeUpdate();
+      }
+      catch (SQLException exception)
+      {
+         exception.printStackTrace();
+      }
+   }
+
+   //C - create
+   public void create(Transaction transaction)
+   {
+      try
+      {
+         PreparedStatement createSql = connection.prepareStatement(INSERT_QUERY);
+         createSql.setInt(1, transaction.getType());
+         createSql.setString(2, transaction.getDescription());
+         createSql.setDouble(3, transaction.getAmount());
+         createSql.setDate(4, java.sql.Date.valueOf(transaction.getDate()));
+         createSql.executeUpdate();
+      }
+      catch (SQLException exception)
+      {
+         exception.printStackTrace();
+      }
+   }
+
+   public void close()
+   {
+      try
+      {
+         connection.close();
+      }
+      catch (SQLException exception)
+      {
+         System.err.println("Błąd przy zamykaniu połączenia");
+         exception.printStackTrace();
+      }
+   }
 }
