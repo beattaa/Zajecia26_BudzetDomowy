@@ -48,7 +48,7 @@ public class DatabaseApp {
                 case "0":
                     scanner.close();
                     transactionDAO.close();
-                    break;
+                    return;
                 default:
                     System.err.println("Nie ma takiej opcji");
             }
