@@ -1,7 +1,6 @@
 package budzetDomowy;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class Transaction {
     private Long id;
@@ -65,8 +64,8 @@ public class Transaction {
         this.date = date;
     }
 
-    @Override public String toString()
-    {
+    @Override
+    public String toString() {
         return "Id=" + id + ", typ=" + type + ", opis= " + description + ", wysokość=" + amount
                 + ", data=" + date;
     }
