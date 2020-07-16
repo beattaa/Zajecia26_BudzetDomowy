@@ -10,7 +10,7 @@ public class DatabaseApp
 {
 
    private Scanner scanner;
-   private TransactionDAO transactionDAO = new TransactionDAO();
+   private TransactionDao transactionDAO = new TransactionDao();
 
    public void run()
    {
@@ -105,8 +105,8 @@ public class DatabaseApp
       int type;
       do
       {
-         System.out.println("Utworz nową transakcję: przychod (typ 1) lub wydatek (typ 2)");
-         System.out.println("Podaj typ: ");
+         System.out.println("Typy transakcji: przychod (1) lub wydatek (2)");
+         System.out.println("Wybierz typ: ");
          type = scanner.nextInt();
          scanner.nextLine();
          if (type != 1 & type != 2)
@@ -120,7 +120,7 @@ public class DatabaseApp
 
    private LocalDate getDateFromUser()
    {
-      LocalDate date = null;
+      LocalDate date;
       try
       {
          System.out.println("Podaj date (format YYYY-MM-DD): ");
@@ -132,6 +132,7 @@ public class DatabaseApp
       {
          System.err.println("Niepoprawny format daty");
          exception.printStackTrace();
+         date = null;
       }
       return date;
    }

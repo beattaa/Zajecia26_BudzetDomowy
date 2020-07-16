@@ -2,13 +2,11 @@ package budzetDomowy;
 
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 
-public class TransactionDAO
+public class TransactionDao
 {
    private static final String URL = "jdbc:mysql://localhost:3306/zad_domowe?characterEncoding=utf8&serverTimezone=UTC&useSSL=false";
    private static final String USERNAME = "root";
@@ -21,7 +19,7 @@ public class TransactionDAO
    private static final String DELETE_QUERY = "DELETE FROM TRANSACTIONS WHERE id = ?";
 
 
-   public TransactionDAO()
+   public TransactionDao()
    {
       try
       {
@@ -31,13 +29,11 @@ public class TransactionDAO
       catch (ClassNotFoundException exception)
       {
          System.err.println("Błąd przy wczytywaniu sterownika");
-         return;
       }
       catch (SQLException exception)
       {
          System.err.println("Błąd podczas nawiązywania połączenia z bazą danych");
          exception.printStackTrace();
-         return;
       }
    }
 
